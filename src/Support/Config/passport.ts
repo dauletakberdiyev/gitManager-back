@@ -1,6 +1,6 @@
 import { PassportStatic } from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import User from '../Models/User';
+import UserService from '../Services/UserService';
 
 export default function (passport: PassportStatic) {
   passport.use(
@@ -12,20 +12,14 @@ export default function (passport: PassportStatic) {
       },
       async (accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
-          let user = await User.findOne({ where: { github_id: profile.id } });
+          let user = await UserService.findByGitHubId(profile.id);
 
           // If user does not exist, create a new one
           if (!user) {
-            user = await User.create({
-              github_id: profile.id,
-              name: profile.username,
-              github_access_token: accessToken,
-              is_active: true,  // Set user as active upon registration
-            });
+            user = await UserService.createUser(profile.id, profile.username, accessToken);
           } else {
             // If user exists, update the access token
-            user.github_access_token = accessToken;
-            await user.save();
+            UserService.updateAccessToken(user, accessToken);
           }
 
           return done(null, user);
@@ -42,7 +36,7 @@ export default function (passport: PassportStatic) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await User.findByPk(id);
+      const user = await UserService.findById(id);
       done(null, user);
     } catch (err) {
       done(err, null);

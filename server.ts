@@ -1,12 +1,13 @@
+import dotenv from 'dotenv';
+
+dotenv.config(); 
+
 import express from 'express';
 import passport from 'passport';
 import session from 'express-session';
 import db from './src/Support/Config/database';
-import apiRoutes from './src/Support/routes/api';
+import apiRoutes from './src/Support/Routes/api';
 import passportConfig from './src/Support/Config/passport';
-import dotenv from 'dotenv';
-
-dotenv.config(); 
 
 passportConfig(passport);  // Passport config
 
@@ -18,7 +19,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
-app.use(apiRoutes);
+app.use('/api', apiRoutes);
 
 // Start the server and sync the database
 db.sync().then(() => {
